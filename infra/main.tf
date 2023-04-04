@@ -15,3 +15,6 @@ provider "aws" {
 # one dynamodb table
 # roles and policies as needed
 # step functions (if you're going for the bonus marks)
+
+
+  
