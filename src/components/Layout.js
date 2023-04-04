@@ -76,6 +76,8 @@ function Layout() {
 
   // selectedFile is the image that was choosen by the user
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState(null);
+
   const [birthDateTime, setBirthDateTime] = useState(null);
   const [deathDateTime, setDeathDateTime] = useState(null);
   const [name, setName] = useState('');
@@ -102,12 +104,14 @@ function Layout() {
 
   const handleFileChange = (event) => {
     if (event.target.files.length > 0) {
-      // const fileData = URL.createObjectURL(event.target.files[0]);
-      setSelectedFile(fileData);
+      setSelectedFile(URL.createObjectURL(event.target.files[0]));
+      setSelectedFileName(event.target.files[0].name);
     } else {
       setSelectedFile(null);
+      setSelectedFileName(null);
     }
   };
+  
 
   const handleNameChange = (event) => {
     setName(event.target.value);
@@ -135,8 +139,7 @@ function Layout() {
       setObituaries([...obituaries, newObituary]);
       console.log(obituaries)
       console.log(obituaries.image)
-  
-      URL.revokeObjectURL(selectedFile);
+
 
       // Reset the form data
       setSelectedFile(null);
@@ -200,7 +203,7 @@ function Layout() {
                 <label htmlFor="file" id="choose-image">
                 ↪Select an Image for the Deceased
                 </label>
-                <span>{selectedFile && `Selected file: ${selectedFile}`}</span>
+                <span>{selectedFile && `Selected file: ${selectedFileName}`}</span>
                 <div className = "popup-contents-main">
                 <input
                     id="input-name"
