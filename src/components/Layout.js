@@ -8,84 +8,33 @@ const localStorageKey = "lotion-v1";
 function Layout() {
   const navigate = useNavigate();
   const mainContainerRef = useRef(null);
-  const [notes, setNotes] = useState([]);
-  const [editMode, setEditMode] = useState(false);
-  const [currentNote, setCurrentNote] = useState(-1);
 
 
+    // selectedFile is the image that was choosen by the user
+  const [selectedFile, setSelectedFile] = useState('');
+  const [selectedFileName, setSelectedFileName] = useState('');
 
-  useEffect(() => {
-    const height = mainContainerRef.current.offsetHeight;
-    mainContainerRef.current.style.maxHeight = `${height}px`;
-    const existing = localStorage.getItem(localStorageKey);
-    if (existing) {
-      try {
-        setNotes(JSON.parse(existing));
-      } catch {
-        setNotes([]);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(notes));
-  }, [notes]);
-
-  useEffect(() => {
-    if (currentNote < 0) {
-      return;
-    }
-    if (!editMode) {
-      navigate(`/notes/${currentNote + 1}`);
-      return;
-    }
-    navigate(`/notes/${currentNote + 1}/edit`);
-  }, [notes]);
-
-  const saveNote = (note, index) => {
-    note.body = note.body.replaceAll("<p><br></p>", "");
-    setNotes([
-      ...notes.slice(0, index),
-      { ...note },
-      ...notes.slice(index + 1),
-    ]);
-    setCurrentNote(index);
-    setEditMode(false);
-  };
-
-  const deleteNote = (index) => {
-    setNotes([...notes.slice(0, index), ...notes.slice(index + 1)]);
-    setCurrentNote(0);
-    setEditMode(false);
-  };
-
-  const addNote = () => {
-    setNotes([
-      {
-        id: uuidv4(),
-        title: "Untitled",
-        body: "",
-      },
-      ...notes,
-    ]);
-    setEditMode(true);
-    setCurrentNote(0);
-  };
-
-
-
-  // selectedFile is the image that was choosen by the user
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedFileName, setSelectedFileName] = useState(null);
-
-  const [birthDateTime, setBirthDateTime] = useState(null);
-  const [deathDateTime, setDeathDateTime] = useState(null);
+  const [birthDateTime, setBirthDateTime] = useState('');
+  const [deathDateTime, setDeathDateTime] = useState('');
   const [name, setName] = useState('');
 
   // want the details of the obituaries to be independent and unique, store in array
   const [obituaries, setObituaries] = useState([]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  useEffect(() => {
+    if (obituaries.length <= 0) {
+      console.log("empty")
+      navigate("/")
+      return;
+    }
+    console.log("wowow")
+    navigate("/obituaries");
+  }, [obituaries, navigate]);
+
+
+
 
   const openPopup = () => {
     setIsPopupOpen(true);
@@ -125,6 +74,8 @@ function Layout() {
   };
 
   const handleWriteObituary = () => {
+      console.log("its not empty")
+   
     
     if (birthDateTime && deathDateTime) {
       const newObituary = {
@@ -133,9 +84,10 @@ function Layout() {
         image: selectedFile,
         birthDate: birthDateTime,
         deathDate: deathDateTime,
+        description: "this is the description",
       };
 
-  
+
       setObituaries([...obituaries, newObituary]);
       console.log(obituaries)
       console.log(obituaries.image)
@@ -146,7 +98,7 @@ function Layout() {
       setBirthDateTime(null);
       setDeathDateTime(null);
 
-  
+
       // Close the popup
       closePopup();
 
@@ -243,9 +195,10 @@ function Layout() {
         </>
       )}
            <div className = "main-container">
-          <Obituary obituaries={obituaries}/>
+           <Obituary obituaries={obituaries}/>
         </div>
     </div>
+    <Outlet />
         {/* <aside id="sidebar" className={collapse ? "hidden" : null}>
           <header>
             <div id="notes-list-heading">
@@ -261,7 +214,7 @@ function Layout() {
         </aside> */}
        
         <div id="write-box">
-          <Outlet context={[notes, saveNote, deleteNote]} />
+          
         </div>
       </div>
     </div>

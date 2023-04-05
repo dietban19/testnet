@@ -1,24 +1,51 @@
-import NewDate from './NewDate'
-
+import NewDate from './NewDate';
+import React, { useState } from 'react';
 
 function ObituaryContainer({ obituary, index }) {
-    return (
-      <li className="obi-item custom-obi-item" key={`obi-item-${index}`}>
-        <img id="imagePic" src={obituary.image} alt={`Image of ${obituary.name}`}></img>
-        <div className="obi-header">
-          <h2 id="obi-name">{obituary.name}</h2>
-          <div className="obi-date">
-            <NewDate date={obituary.birthDate} />-<NewDate id="obi-death" date={obituary.deathDate} />
-          </div>
-          <details>
-            <summary>Click</summary>
-            Hello
-          </details>
+  const [showDescription, setShowDescription] = useState(false);
+
+  const toggleDescription = () => {
+    setShowDescription(!showDescription);
+  };
+
+  const handleButtonClick = (event) => {
+    event.stopPropagation();
+    // Perform any actions you want when the button is clicked
+    console.log('Button clicked');
+  };
+
+  return (
+    <div
+      className="obi-item"
+      key={`obi-item-${index}`}
+      onClick={toggleDescription}
+      style={{ height: showDescription ? 'auto' : 'initial' }}
+    >
+      <img
+        id="imagePic"
+        src={obituary.image}
+        alt={`Image of ${obituary.name}`}
+        className="obi-image"
+      ></img>
+      <div className="obi-header">
+        <h2 id="obi-name">{obituary.name}</h2>
+
+        <div className="obi-date">
+          <NewDate date={obituary.birthDate} />-<NewDate id="obi-death" date={obituary.deathDate} />
         </div>
-      </li>
-    );
-  }
-  
-  
-  export default ObituaryContainer;
-  
+      </div>
+      {showDescription && (
+        <div className="obi-description">
+          <div className="description-container">
+            <p>{obituary.description}</p>
+            <button id="play-button" onClick={handleButtonClick}>
+              This is a button
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ObituaryContainer;

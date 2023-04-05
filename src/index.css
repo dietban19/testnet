@@ -32,10 +32,14 @@ body {
   color: white;
   background-color: #0276c4;;
   cursor: pointer;
+  border: none;
+  outline: none;
 }
 .button-disabled{
   background-color: #bababa;
   cursor: default;
+  border: none;
+  outline: none;
 }
 #container {
   min-height: 100vh;
@@ -84,11 +88,11 @@ header aside {
   margin: 0;
   padding: 25px 0;
 }
-button,
+
 input {
   border: none;
   outline: none;
-  background-color: transparent;
+
 }
 button {
   margin:10;
@@ -201,6 +205,13 @@ button {
   width: 800px;
   margin: 10px;
 }
+
+.main-container{
+  overflow-y: scroll;
+  height: 100vh;
+  width: 100vw;
+}
+
 #date-container{
   margin: 20px;
   display: flex;
@@ -212,19 +223,12 @@ button {
 }
 
 
-.obi-item {
-  width: 400px;
-  display: flex;
-  flex-direction: column;
-  outline: 1px solid black;
-  cursor: pointer;
-  border-radius: 5px;
-  margin: 10px;
-}
+
 
 .obi-date{
   display: flex;
   font-size: 13px;
+
 }
 
 .obi-header{
@@ -236,37 +240,52 @@ button {
 }
 
 #obi-name{
+  
   font-weight:420;
 }
 
+.obi-item {
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  outline: 1px solid black;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
 .obituary-list {
+
+  width: 98%;
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   padding: 0; 
-  margin: 0;
+  margin: 10px;
   list-style: none;
 }
 
-.obituary-list .obi-item {
-  margin-right: 20px;
-  margin-bottom: 20px;
+.obi-image{
+  max-height: 500px;
+}
+#obituary-container {
+  color: red;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  margin: 8px;
+  padding: 8px;
+  min-height: 10px;
+
+}
+.obi-description {
+  padding: 15px;
+  display: flex;
+  justify-content: center;
 }
 
-.custom-obi-item {
-  max-width: 300px;
-  max-height: 450px;
+.description-container{
 }
-
-.custom-obi-item img {
-  width: 100%;
-  height: auto;
-  max-height: 350px;
-  object-fit: cover;
-}
-
-
-.custom-obi-item:hover {
-  background-color: rgba(211, 211, 211, 0.5); /* Light gray with 50% transparency */
-}
-
-
