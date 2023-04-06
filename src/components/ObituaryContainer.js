@@ -1,6 +1,6 @@
 import NewDate from './NewDate';
 import React, { useState } from 'react';
-
+import { Image } from 'cloudinary-react';
 function ObituaryContainer({ obituary, index }) {
   const [showDescription, setShowDescription] = useState(false);
 
@@ -21,12 +21,17 @@ function ObituaryContainer({ obituary, index }) {
       onClick={toggleDescription}
       style={{ height: showDescription ? 'auto' : 'initial' }}
     >
+{/*       
       <img
         id="imagePic"
         src={obituary.image}
         alt={`Image of ${obituary.name}`}
         className="obi-image"
-      ></img>
+      ></img> */}
+       <Image 
+                    className = "obi-image"
+                    cloudName = "dx0n3s9h4" 
+                    publicId = {obituary.image}/>
       <div className="obi-header">
         <h2 id="obi-name">{obituary.name}</h2>
 

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import Obituary from "./Obituary";
+import { Image } from 'cloudinary-react';
+import axios from 'axios';
 
-const localStorageKey = "lotion-v1";
-
+//zvdudnw2
 function Layout() {
   const navigate = useNavigate();
   const mainContainerRef = useRef(null);
@@ -20,8 +21,8 @@ function Layout() {
 
   // want the details of the obituaries to be independent and unique, store in array
   const [obituaries, setObituaries] = useState([]);
-
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [publicId, setPublicId] = useState('');
 
   useEffect(() => {
     if (obituaries.length <= 0) {
@@ -52,10 +53,22 @@ function Layout() {
   
 
   const handleFileChange = (event) => {
-    if (event.target.files.length > 0) {
-      setSelectedFile(URL.createObjectURL(event.target.files[0]));
-      setSelectedFileName(event.target.files[0].name);
+    console.log("THE ESF",selectedFile)
+    const myFormData = new FormData();
+    myFormData.append("file", event[0])
+    myFormData.append("upload_preset", "zvdudnw2")
+    axios.post("https://api.cloudinary.com/v1_1/dx0n3s9h4/image/upload", myFormData).then((response) => {
+  console.log(response);
+  setPublicId(response.data.public_id);
+    });
+    
+    
+    if (event.length > 0) {
+
+      setSelectedFile(URL.createObjectURL(event[0]));
+      setSelectedFileName(event[0].name);
     } else {
+  
       setSelectedFile(null);
       setSelectedFileName(null);
     }
@@ -81,7 +94,7 @@ function Layout() {
       const newObituary = {
         id: uuidv4(),
         name: name,
-        image: selectedFile,
+        image: publicId,
         birthDate: birthDateTime,
         deathDate: deathDateTime,
         description: "this is the description",
@@ -101,6 +114,7 @@ function Layout() {
 
       // Close the popup
       closePopup();
+
 
 
     } else {
@@ -128,7 +142,8 @@ function Layout() {
           <button id = "add-button" onClick={openPopup}>+ Add Obituary</button>
         </aside>
       </header>
-
+      <div>
+    </div>
       <div id="main-container" ref={mainContainerRef}>
       <div>
    
@@ -143,14 +158,16 @@ function Layout() {
                 <div id = "popup-contents-header">
               
                   <h1>Create a New Obituary</h1>
+                 
                   <h2>Image Here</h2>
                   <hr></hr>
                 </div>
+               
                <input
                   type="file"
                   id="file"
                   accept="image/*"
-                  onChange={handleFileChange}
+                  onChange={(event)=>{handleFileChange(event.target.files)}}
                 ></input>
                 <label htmlFor="file" id="choose-image">
                 ↪Select an Image for the Deceased
@@ -212,10 +229,7 @@ function Layout() {
             <NoteList notes={notes} />
           </div>
         </aside> */}
-       
-        <div id="write-box">
-          
-        </div>
+
       </div>
     </div>
   );
