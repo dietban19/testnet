@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import Obituary from "./Obituary";
-import { Image } from 'cloudinary-react';
 import axios from 'axios';
+import openai from 'openai';
 
 //zvdudnw2
 function Layout() {
@@ -24,18 +24,17 @@ function Layout() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [publicId, setPublicId] = useState('');
 
+
+
   useEffect(() => {
     if (obituaries.length <= 0) {
-      console.log("empty")
       navigate("/")
       return;
     }
-    console.log("wowow")
     navigate("/obituaries");
   }, [obituaries, navigate]);
 
-
-
+  
 
   const openPopup = () => {
     setIsPopupOpen(true);
@@ -51,24 +50,31 @@ function Layout() {
     setIsPopupOpen(false);
   };
   
-
+  const generateTransformedImageUrl = (publicId, effect) => {
+    const baseUrl = "https://res.cloudinary.com/dx0n3s9h4/image/upload";
+    return `${baseUrl}/${effect}/${publicId}`;
+  };
+  
   const handleFileChange = (event) => {
-    console.log("THE ESF",selectedFile)
-    const myFormData = new FormData();
-    myFormData.append("file", event[0])
-    myFormData.append("upload_preset", "zvdudnw2")
-    axios.post("https://api.cloudinary.com/v1_1/dx0n3s9h4/image/upload", myFormData).then((response) => {
-  console.log(response);
-  setPublicId(response.data.public_id);
-    });
-    
-    
     if (event.length > 0) {
-
+      const myFormData = new FormData();
+      myFormData.append("file", event[0]);
+      myFormData.append("upload_preset", "zvdudnw2");
+      myFormData.append("e_pixelate", "20"); // Add the effect as a FormData parameter
+  
+      axios
+        .post("https://api.cloudinary.com/v1_1/dx0n3s9h4/image/upload", myFormData) // Remove the effect from the URL
+        .then((response) => {
+          console.log(response);
+          setPublicId(response.data.public_id);
+        })
+        .catch((error) => {
+          console.error("Error uploading the file:", error);
+        });
+  
       setSelectedFile(URL.createObjectURL(event[0]));
       setSelectedFileName(event[0].name);
     } else {
-  
       setSelectedFile(null);
       setSelectedFileName(null);
     }
@@ -87,40 +93,33 @@ function Layout() {
   };
 
   const handleWriteObituary = () => {
-      console.log("its not empty")
-   
-    
     if (birthDateTime && deathDateTime) {
+      // Apply the pixelation effect to the image URL
+      const pixelatedImageUrl = generateTransformedImageUrl(publicId, "e_art:zorro");
+  
       const newObituary = {
         id: uuidv4(),
         name: name,
-        image: publicId,
+        image: pixelatedImageUrl, // Use the transformed image URL
         birthDate: birthDateTime,
         deathDate: deathDateTime,
         description: "this is the description",
       };
-
-
+  
       setObituaries([...obituaries, newObituary]);
-      console.log(obituaries)
-      console.log(obituaries.image)
-
-
+  
       // Reset the form data
       setSelectedFile(null);
       setBirthDateTime(null);
       setDeathDateTime(null);
-
-
+  
       // Close the popup
       closePopup();
-
-
-
     } else {
       alert("Please enter both birth and death date/time");
     }
   };
+  
   
  
   return (

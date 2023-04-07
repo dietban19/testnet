@@ -258,7 +258,6 @@ button {
   transition: height 0.3s ease;
 }
 .obituary-list {
-
   width: 98%;
   display: flex;
   flex-wrap: wrap;
