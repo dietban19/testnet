@@ -25,6 +25,35 @@ function Layout() {
   const [publicId, setPublicId] = useState('');
 
 
+  const [fetchedObituaries, setFetchedObituaries] = useState([]);
+
+  useEffect(() => {
+    console.log("LOADING")
+    const fetchObituaries = async () => {
+      try {
+        const response = await fetch("https://v3ltd3siykb4juuquihx222m7q0gusne.lambda-url.ca-central-1.on.aws/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            // "authorization": user.access_token, // Uncomment this if you need to pass an access token
+          },
+        });
+
+        if (response.status === 200) {
+          console.log("SUCCESS!!")
+          const obituaries = await response.json();
+          setFetchedObituaries(obituaries);
+        } else {
+          // Handle non-200 status codes as needed
+          console.error(`Error fetching obituaries: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Error fetching obituaries:", error);
+      }
+    };
+
+    fetchObituaries();
+  }, [obituaries]); // Add any dependencies as needed
 
   useEffect(() => {
     if (obituaries.length <= 0) {
@@ -91,8 +120,7 @@ function Layout() {
   const handleDeathDateTimeChange = (event) => {
     setDeathDateTime(event.target.value);
   };
-
-  const handleWriteObituary = () => {
+  const handleWriteObituary = async () => {
     if (birthDateTime && deathDateTime) {
       // Apply the pixelation effect to the image URL
       const pixelatedImageUrl = generateTransformedImageUrl(publicId, "e_art:zorro");
@@ -106,20 +134,35 @@ function Layout() {
         description: "this is the description",
       };
   
-      setObituaries([...obituaries, newObituary]);
+      // Call the create-obituary Lambda function
+      try {
+        const response = await axios.post("https://6sha33sy25nhvqvtf72caxg3vm0vjebu.lambda-url.ca-central-1.on.aws/", newObituary);
+        console.log(response);
   
-      // Reset the form data
-      setSelectedFile(null);
-      setBirthDateTime(null);
-      setDeathDateTime(null);
+        if (response.status === 200) {
+          setObituaries([...obituaries, newObituary]);
   
-      // Close the popup
-      closePopup();
+          // Reset the form data
+          setSelectedFile(null);
+          setBirthDateTime(null);
+          setDeathDateTime(null);
+  
+          // Close the popup
+          closePopup();
+          console.log()
+        } else {
+          alert("Error occurred while creating obituary.");
+        }
+      } catch (error) {
+        console.error("Error calling the create-obituary Lambda function:", error);
+        alert("Error occurred while creating obituary.");
+      }
     } else {
       alert("Please enter both birth and death date/time");
     }
   };
   
+
   
  
   return (

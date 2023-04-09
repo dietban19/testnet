@@ -10,7 +10,6 @@ function ObituaryContainer({ obituary, index }) {
 
   const handleButtonClick = (event) => {
     event.stopPropagation();
-    // Perform any actions you want when the button is clicked
     console.log('Button clicked');
   };
 

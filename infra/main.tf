@@ -11,14 +11,223 @@ provider "aws" {
   region = "ca-central-1"
 }
 
+
+resource "aws_dynamodb_table" "obituaries-30120286" {
+  name         = "obituaries-30120286"
+  billing_mode = "PROVISIONED"
+
+  # up to 8KB read per second (eventually consistent)
+  read_capacity = 1
+  write_capacity = 1
+
+  # we only need a student id to find an item in the table; therefore, we 
+  # don't need a sort key here
+  hash_key = "id"
+
+  # the hash_key data type is string
+  attribute {
+    name =  "id"
+    type =   "S"
+  }
+}
+
+ resource "aws_iam_policy" "logs" {
+  name        = "lambda-loggings"
+  description = "IAM policy for logging from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": ["arn:aws:logs:*:*:*", "${aws_dynamodb_table.obituaries-30120286.arn}"],
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+
+locals {
+  handler_name  = "main.lambda_handler"
+
+}
+
 # two lambda functions w/ function url
 # one dynamodb table
 # roles and policies as needed
 # step functions (if you're going for the bonus marks)
 
 # Create an IAM role for the create_obituary Lambda function
-resource "aws_iam_role" "create_obituary_role" {
-  name = "create_obituary_role"
+resource "aws_iam_role" "create-obituary_lambda" {
+  name               = "iam-for-lambda-create-obituary"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+ data "archive_file" "lambda_create-obituary"{
+    type = "zip"
+    # this file (main.py) needs to exist in the same folder as this 
+  # Terraform configuration file
+    source_file = "../functions/create-obituary/main.py"
+    output_path = "create-obituary-artifact.zip"
+ }
+
+resource "aws_lambda_function" "create-obituary-30120286" {
+  role             = aws_iam_role.create-obituary_lambda.arn
+  function_name = "create-obituary"
+  handler          = local.handler_name
+  filename         = "create-obituary-artifact.zip"
+  source_code_hash = data.archive_file.lambda_create-obituary.output_base64sha256
+
+  # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
+  runtime = "python3.9"
+}
+
+resource "aws_iam_role_policy_attachment" "create-obituary-lambda_logs" {
+  role       = aws_iam_role.create-obituary_lambda.name
+  policy_arn = aws_iam_policy.logs.arn
+}
+
+resource "aws_lambda_function_url" "create-obituary"{
+    function_name       = aws_lambda_function.create-obituary-30120286.function_name
+    authorization_type = "NONE"
+
+    cors{
+        allow_credentials = true
+        allow_origins = ["*"]
+        allow_methods = ["POST"]
+        allow_headers = ["*"]
+        expose_headers = ["keep-alive","date"]        
+    }
+}
+output "create-obituary_lambda_url" {
+    value = aws_lambda_function_url.create-obituary.function_url
+}
+
+
+
+//---------------------------------------------------------------------------------------------------------//
+
+
+resource "aws_iam_role" "get-obituaries_lambda" {
+  name               = "iam-for-lambda-get-obituary"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+
+EOF
+}
+
+
+data "archive_file" "lambda_get-obituaries"{
+    type = "zip"
+    # this file (main.py) needs to exist in the same folder as this 
+  # Terraform configuration file
+    source_file = "../functions/get-obituaries/main.py"
+    output_path = "get-obituaries-artifact.zip"
+ }
+
+
+
+resource "aws_lambda_function" "get-obituaries-30120286" {
+  role             = aws_iam_role.create-obituary_lambda.arn
+  function_name = "get-obituaries"
+  handler          = local.handler_name
+  filename         = "get-obituaries-artifact.zip"
+  source_code_hash = data.archive_file.lambda_get-obituaries.output_base64sha256
+
+  # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
+  runtime = "python3.9"
+}
+
+resource "aws_iam_role_policy_attachment" "get-obituaries-lambda_logs" {
+  role       = aws_iam_role.get-obituaries_lambda.name
+  policy_arn = aws_iam_policy.logs.arn
+}
+
+
+resource "aws_lambda_function_url" "get-obituaries"{
+    function_name       = aws_lambda_function.get-obituaries-30120286.function_name
+    authorization_type = "NONE"
+
+    cors{
+        allow_credentials = true
+        allow_origins = ["*"]
+        allow_methods = ["GET"]
+        allow_headers = ["*"]
+        expose_headers = ["keep-alive","date"]        
+    }
+}
+output "get-obituaries_lambda_url" {
+    value = aws_lambda_function_url.get-obituaries.function_url
+}
+
+
+
+
+
+//-------------------------------------------------------------------------------------------------
+
+data "archive_file" "lambda_generate-obituary"{
+    type = "zip"
+    # this file (main.py) needs to exist in the same folder as this 
+  # Terraform configuration file
+    source_file = "../functions/generate-obituary/main.py"
+    output_path = "generate-obituary_artifact.zip"
+ }
+resource "aws_lambda_function" "generate-obituary-30120286" {
+  function_name = "generate-obituary"
+  handler       = "generate-obituary.lambda_handler"
+  runtime       = "python3.9"
+  role          = aws_iam_role.lambda_exec.arn
+  filename      = "generate-obituary_artifact.zip"
+
+  environment {
+    variables = {
+      OPENAI_API_KEY = "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"
+    }
+  }
+}
+
+resource "aws_iam_role" "lambda_exec" {
+  name = "lambda_exec"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -33,55 +242,12 @@ resource "aws_iam_role" "create_obituary_role" {
   })
 }
 
-# Attach necessary policies to the create_obituary IAM role
-resource "aws_iam_role_policy_attachment" "create_obituary_policy" {
+resource "aws_iam_role_policy_attachment" "lambda_exec" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = aws_iam_role.create_obituary_role.name
+  role       = aws_iam_role.lambda_exec.name
 }
 
-# Create the create_obituary Lambda function
-resource "aws_lambda_function" "create_obituary" {
-  function_name = "create_obituary"
-  role          = aws_iam_role.create_obituary_role.arn
-  handler       = "main.lambda_handler"
-
-  # Replace the path with the path to your create_obituary Lambda function zip package
-  filename = "<path-to-your-create_obituary-lambda-package>.zip"
-  runtime  = "python3.9"
+module "aws_step_function" {
+  source = "./modules/aws-step-function"
+  lambda_function_arn = aws_lambda_function.generate-obituary-30120286.arn
 }
-
-# Create an IAM role for the get_obituary Lambda function
-resource "aws_iam_role" "get_obituary_role" {
-  name = "get_obituary_role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Attach necessary policies to the get_obituary IAM role
-resource "aws_iam_role_policy_attachment" "get_obituary_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = aws_iam_role.get_obituary_role.name
-}
-
-# Create the get_obituary Lambda function
-resource "aws_lambda_function" "get_obituary" {
-  function_name = "get_obituary"
-  role          = aws_iam_role.get_obituary_role.arn
-  handler       = "main.lambda_handler"
-
-  # Replace the path with the path to your get_obituary Lambda function zip package
-  filename = "<path-to-your-get_obituary-lambda-package>.zip"
-  runtime  = "python3.9"
-}
-
-  
