@@ -204,50 +204,10 @@ output "get-obituaries_lambda_url" {
 
 //-------------------------------------------------------------------------------------------------
 
-data "archive_file" "lambda_generate-obituary"{
-    type = "zip"
-    # this file (main.py) needs to exist in the same folder as this 
-  # Terraform configuration file
-    source_file = "../functions/generate-obituary/main.py"
-    output_path = "generate-obituary_artifact.zip"
- }
-resource "aws_lambda_function" "generate-obituary-30120286" {
-  function_name = "generate-obituary"
-  handler       = "generate-obituary.lambda_handler"
-  runtime       = "python3.9"
-  role          = aws_iam_role.lambda_exec.arn
-  filename      = "generate-obituary_artifact.zip"
-
-  environment {
-    variables = {
-      OPENAI_API_KEY = "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"
-    }
-  }
-}
-
-resource "aws_iam_role" "lambda_exec" {
-  name = "lambda_exec"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_exec" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = aws_iam_role.lambda_exec.name
-}
-
-module "aws_step_function" {
-  source = "./modules/aws-step-function"
-  lambda_function_arn = aws_lambda_function.generate-obituary-30120286.arn
-}
+# data "archive_file" "lambda_generate-obituary"{
+#     type = "zip"
+#     # this file (main.py) needs to exist in the same folder as this 
+#   # Terraform configuration file
+#     source_file = "../functions/generate-obituary/main.py"
+#     output_path = "generate-obituary_artifact.zip"
+#  }
