@@ -15,8 +15,8 @@ function Layout() {
   const [selectedFile, setSelectedFile] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
 
-  const [birthDateTime, setBirthDateTime] = useState('');
-  const [deathDateTime, setDeathDateTime] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [deathDate, setDeathDate] = useState('');
   const [name, setName] = useState('');
 
   // want the details of the obituaries to be independent and unique, store in array
@@ -34,7 +34,7 @@ function Layout() {
         const response = await fetch("https://v3ltd3siykb4juuquihx222m7q0gusne.lambda-url.ca-central-1.on.aws/", {
           method: "GET",
           headers: {
-            "Content-Type": "application/json",
+            // "Content-Type": "multipart/form-data",
             // "authorization": user.access_token, // Uncomment this if you need to pass an access token
           },
         });
@@ -73,95 +73,98 @@ function Layout() {
 
     // Reset the form data
     setSelectedFile(null);
-    setBirthDateTime(null);
-    setDeathDateTime(null);
+    setBirthDate(null);
+    setDeathDate(null);
 
     setIsPopupOpen(false);
   };
   
-  const generateTransformedImageUrl = (publicId, effect) => {
-    const baseUrl = "https://res.cloudinary.com/dx0n3s9h4/image/upload";
-    return `${baseUrl}/${effect}/${publicId}`;
-  };
+  // const generateTransformedImageUrl = (publicId, effect) => {
+  //   const baseUrl = "https://res.cloudinary.com/dx0n3s9h4/image/upload";
+  //   return `${baseUrl}/${effect}/${publicId}`;
+  // };
   
-  const handleFileChange = (event) => {
-    if (event.length > 0) {
-      const myFormData = new FormData();
-      myFormData.append("file", event[0]);
-      myFormData.append("upload_preset", "zvdudnw2");
-      myFormData.append("e_pixelate", "20"); // Add the effect as a FormData parameter
-  
-      axios
-        .post("https://api.cloudinary.com/v1_1/dx0n3s9h4/image/upload", myFormData) // Remove the effect from the URL
-        .then((response) => {
-          console.log(response);
-          setPublicId(response.data.public_id);
-        })
-        .catch((error) => {
-          console.error("Error uploading the file:", error);
-        });
-  
-      setSelectedFile(URL.createObjectURL(event[0]));
-      setSelectedFileName(event[0].name);
-    } else {
-      setSelectedFile(null);
-      setSelectedFileName(null);
-    }
-  };
-  
-
   const handleNameChange = (event) => {
     setName(event.target.value);
   };
-  const handleBirthDateTimeChange = (event) => {
-    setBirthDateTime(event.target.value);
+  const handleBirthDateChange = (event) => {
+    setBirthDate(event.target.value);
   };
   
-  const handleDeathDateTimeChange = (event) => {
-    setDeathDateTime(event.target.value);
+  const handleDeathDateChange = (event) => {
+    setDeathDate(event.target.value);
   };
-  const handleWriteObituary = async () => {
-    if (birthDateTime && deathDateTime) {
-      // Apply the pixelation effect to the image URL
-      const pixelatedImageUrl = generateTransformedImageUrl(publicId, "e_art:zorro");
-  
-      const newObituary = {
-        id: uuidv4(),
-        name: name,
-        image: pixelatedImageUrl, // Use the transformed image URL
-        birthDate: birthDateTime,
-        deathDate: deathDateTime,
-        description: "this is the description",
-      };
-  
-      // Call the create-obituary Lambda function
-      try {
-        const response = await axios.post("https://6sha33sy25nhvqvtf72caxg3vm0vjebu.lambda-url.ca-central-1.on.aws/", newObituary);
-        console.log(response);
-  
-        if (response.status === 200) {
-          setObituaries([...obituaries, newObituary]);
-  
-          // Reset the form data
-          setSelectedFile(null);
-          setBirthDateTime(null);
-          setDeathDateTime(null);
-  
-          // Close the popup
-          closePopup();
-          console.log()
-        } else {
-          alert("Error occurred while creating obituary.");
-        }
-      } catch (error) {
-        console.error("Error calling the create-obituary Lambda function:", error);
+
+const handleFileChange = (event) => {
+  if (event.target.files.length > 0) {
+    setSelectedFile(event.target.files[0]);
+    setSelectedFileName(event.target.files[0].name);
+  } else {
+    setSelectedFile(null);
+    setSelectedFileName(null);
+  }
+  console.log("SELECTED FILE IS" ,selectedFile, "OTHER IS \n",selectedFileName);
+};
+
+const handleInputChange = (setStateFunction, event) => {
+  setStateFunction(event.target.value);
+}; const handleWriteObituary = async () => {
+  if (birthDate && deathDate) {
+    // Apply the pixelation effect to the image URL
+
+
+    const newObituary = {
+      id: uuidv4(),
+      name: name,
+      image: selectedFile, // Use the transformed image URL
+      birthDate: birthDate,
+      deathDate: deathDate,
+      description: "this is the description",
+    };
+
+   
+    const formData = new FormData();
+    formData.append("id", newObituary.id);
+    formData.append("name", newObituary.name);
+    formData.append("image", selectedFile, selectedFileName);
+    formData.append("birthDate", newObituary.birthDate);
+    formData.append("deathDate", newObituary.deathDate);
+    formData.append("description", newObituary.description);
+    for (const [key, value] of formData) {
+      console.log(`${key}: ${value}`);
+    }
+    // Call the create-obituary Lambda function
+    try {
+      const response = await axios.post("https://6sha33sy25nhvqvtf72caxg3vm0vjebu.lambda-url.ca-central-1.on.aws/", formData,{
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+        },
+      });
+      console.log(response);
+
+      if (response.status === 200) {
+        setObituaries([...obituaries, newObituary]);
+
+        // Reset the form data
+        setSelectedFile(null);
+        setBirthDate(null);
+        setDeathDate(null);
+
+        // Close the popup
+        closePopup();
+        console.log()
+      } else {
         alert("Error occurred while creating obituary.");
       }
-    } else {
-      alert("Please enter both birth and death date/time");
+    } catch (error) {
+      console.error("Error calling the create-obituary Lambda function:", error);
+      alert("Error occurred while creating obituary.");
     }
-  };
-  
+  } else {
+    alert("Please enter both birth and death date/time");
+  }
+};
+
 
   
  
@@ -209,7 +212,7 @@ function Layout() {
                   type="file"
                   id="file"
                   accept="image/*"
-                  onChange={(event)=>{handleFileChange(event.target.files)}}
+                  onChange={(event)=>{handleFileChange(event)}}
                 ></input>
                 <label htmlFor="file" id="choose-image">
                 ↪Select an Image for the Deceased
@@ -220,20 +223,21 @@ function Layout() {
                     id="input-name"
                     type="text"
                     value={name}
-                    onChange={handleNameChange}
+                    onChange={(event) => handleNameChange(event)}
                   />
                   <div id = "date-container">
                     
                   <h3>Born:{" "}
                   <input type="datetime-local"
-                          value={birthDateTime}
-                          onChange={handleBirthDateTimeChange}></input></h3>
+                          value={birthDate}
+                          onChange={(event) => handleBirthDateChange(event)}
+                          ></input></h3>
                   <h3>
                     Died:{" "}
                     <input
                       type="datetime-local"
-                      value={deathDateTime}
-                      onChange={handleDeathDateTimeChange}
+                      value={deathDate}
+                      onChange={(event) => handleDeathDateChange(event)}
                     ></input>
                   </h3>
                   </div>
@@ -241,8 +245,8 @@ function Layout() {
                 </div>
                 <button
                   onClick={handleWriteObituary}
-                  disabled={!birthDateTime || !deathDateTime || !selectedFile||!name}
-                  className={!birthDateTime || !deathDateTime ||!name || !selectedFile ? "button-disabled" : "button-enabled"}>
+                  disabled={!birthDate || !deathDate || !selectedFile||!name}
+                  className={!birthDate || !deathDate ||!name || !selectedFile ? "button-disabled" : "button-enabled"}>
                    Write Obituary</button>
 
               </div>

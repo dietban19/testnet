@@ -15,6 +15,7 @@ a {
   text-decoration: none;
 }
 
+
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   max-height: 100vh;
@@ -59,9 +60,7 @@ header{
 }
 header aside {
   display: flex;
-
   flex: 0 1 10%;
-
   justify-content: flex-start;
 }
 #add-button{
@@ -146,7 +145,6 @@ button {
   transform: translate(-50%,-50%);
   border-radius: 10px;
   z-index: 10000;
-  max-width: 50%;
 
 }
 
@@ -289,4 +287,9 @@ button {
 }
 
 .description-container{
+}
+
+
+@media screen and (max-width: 390px) {
+
 }
