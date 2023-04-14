@@ -1,0 +1,4 @@
+# functions/create-obituary/requirements.txt
+requests
+# requests_toolbelt
+requests-toolbelt==0.10.1

@@ -31,7 +31,7 @@ resource "aws_dynamodb_table" "obituaries-30120286" {
   }
 }
 
- resource "aws_iam_policy" "logs" {
+resource "aws_iam_policy" "logs" {
   name        = "lambda-loggings"
   description = "IAM policy for logging from a lambda"
 
@@ -44,7 +44,6 @@ resource "aws_dynamodb_table" "obituaries-30120286" {
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
-        "dynamodb:PutItem",
         "dynamodb:GetItem",
         "dynamodb:DeleteItem",
         "dynamodb:Query",
@@ -53,11 +52,20 @@ resource "aws_dynamodb_table" "obituaries-30120286" {
       ],
       "Resource": ["arn:aws:logs:*:*:*", "${aws_dynamodb_table.obituaries-30120286.arn}"],
       "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "dynamodb:PutItem"
+      ],
+      "Resource": "${aws_dynamodb_table.obituaries-30120286.arn}",
+      "Effect": "Allow"
     }
   ]
 }
 EOF
 }
+
+
 
 
 locals {
@@ -88,12 +96,13 @@ resource "aws_iam_role" "create-obituary_lambda" {
   ]
 }
 EOF
+
 }
 
 data "archive_file" "lambda_create-obituary" {
   type        = "zip"
-  source_file = "../functions/create-obituary/main.py"
-  output_path = "create-obituary-artifact.zip"
+  source_file = "../functions/create-obituary/deployment-package/deployment-package.zip"
+  output_path = "create-obituary-deploy-package.zip"
 }
 
 # resource "aws_lambda_function" "create-obituary-30120286" {
@@ -109,7 +118,7 @@ data "archive_file" "lambda_create-obituary" {
 // calls the zip file and uses it and uploads it to aws
 resource "aws_lambda_function" "create-obituary-30120286" {
   role             = aws_iam_role.create-obituary_lambda.arn
-  function_name    = "create-obituary"
+  function_name    = "create-obituary-30120286"
   handler          = local.handler_name
   filename         = "../functions/create-obituary/deployment-package/deployment-package.zip"
   source_code_hash = filebase64sha256("../functions/create-obituary/deployment-package/deployment-package.zip")
@@ -117,6 +126,7 @@ resource "aws_lambda_function" "create-obituary-30120286" {
   # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
   runtime = "python3.9"
 }
+
 
 
 resource "aws_iam_role_policy_attachment" "create-obituary-lambda_logs" {
@@ -141,6 +151,23 @@ output "create-obituary_lambda_url" {
 }
 
 
+resource "aws_iam_role_policy" "create-obituary-dynamodb" {
+  name = "create-obituary-dynamodb"
+  role = aws_iam_role.create-obituary_lambda.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:PutItem"
+        ]
+        Effect   = "Allow"
+        Resource = aws_dynamodb_table.obituaries-30120286.arn
+      }
+    ]
+  })
+}
 
 resource "aws_iam_role_policy" "create-obituary-ssm" {
   name        = "create-obituary-ssm"
@@ -149,88 +176,90 @@ resource "aws_iam_role_policy" "create-obituary-ssm" {
     Statement = [
       {
         Action = [
-          "ssm:GetParameters"
+          "ssm:GetParameter"
         ]
         Effect   = "Allow"
         Resource = [
-          "arn:aws:ssm:ca-central-1:906484542670:parameter/CloudinaryApiKey",
-          "arn:aws:ssm:ca-central-1:906484542670:parameter/CloudinaryApiSecret",
-          "arn:aws:ssm:ca-central-1:906484542670:parameter/CloudinaryCloudName"
+          "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_cloud_name",
+          "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_api_key",
+          "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_api_secret"
         ]
       }
     ]
   })
-  role        = aws_iam_role.create-obituary_lambda.id
+  role        = aws_iam_role.create-obituary_lambda.name
 }
+
 
 
 //---------------------------------------------------------------------------------------------------------//
 
-resource "aws_iam_role" "get-obituaries_lambda" {
-  name               = "iam-for-lambda-get-obituary"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
 
-EOF
-}
+# resource "aws_iam_role" "get-obituaries_lambda" {
+#   name               = "iam-for-lambda-get-obituary"
+#   assume_role_policy = <<EOF
+# {
+#   "Version": "2012-10-17",
+#   "Statement": [
+#     {
+#       "Action": "sts:AssumeRole",
+#       "Principal": {
+#         "Service": "lambda.amazonaws.com"
+#       },
+#       "Effect": "Allow",
+#       "Sid": ""
+#     }
+#   ]
+# }
 
-
-data "archive_file" "lambda_get-obituaries"{
-    type = "zip"
-    # this file (main.py) needs to exist in the same folder as this 
-  # Terraform configuration file
-    source_file = "../functions/get-obituaries/main.py"
-    output_path = "get-obituaries-artifact.zip"
- }
+# EOF
+# }
 
 
-
-resource "aws_lambda_function" "get-obituaries-30120286" {
-  role = aws_iam_role.get-obituaries_lambda.arn
-  function_name = "get-obituaries"
-  handler          = local.handler_name
-  filename         = "get-obituaries-artifact.zip"
-  source_code_hash = data.archive_file.lambda_get-obituaries.output_base64sha256
-
-  # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
-  runtime = "python3.9"
-}
-
-resource "aws_iam_role_policy_attachment" "get-obituaries-lambda_logs" {
-  role       = aws_iam_role.get-obituaries_lambda.name
-  policy_arn = aws_iam_policy.logs.arn
-}
+# data "archive_file" "lambda_get-obituaries"{
+#     type = "zip"
+#     # this file (main.py) needs to exist in the same folder as this 
+#   # Terraform configuration file
+#     source_file = "../functions/get-obituaries/main.py"
+#     output_path = "get-obituaries-artifact.zip"
+#  }
 
 
-resource "aws_lambda_function_url" "get-obituaries"{
-    function_name       = aws_lambda_function.get-obituaries-30120286.function_name
-    authorization_type = "NONE"
 
-cors {
-    allow_credentials = true
-    allow_origins = ["*"]
-    allow_methods = ["GET"]
-    allow_headers = ["*"]
-    expose_headers = ["keep-alive", "date"]
-    max_age = 86400  # Cache preflight request results for 24 hours (86400 seconds)
-}
+# resource "aws_lambda_function" "get-obituaries-30120286" {
+#   role = aws_iam_role.get-obituaries_lambda.arn
+#   function_name = "get-obituaries"
+#   handler          = local.handler_name
+#   filename         = "get-obituaries-artifact.zip"
+#   source_code_hash = data.archive_file.lambda_get-obituaries.output_base64sha256
 
-}
-output "get-obituaries_lambda_url" {
-    value = aws_lambda_function_url.get-obituaries.function_url
-}
+#   # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
+#   runtime = "python3.9"
+# }
+
+# resource "aws_iam_role_policy_attachment" "get-obituaries-lambda_logs" {
+#   role       = aws_iam_role.get-obituaries_lambda.name
+#   policy_arn = aws_iam_policy.logs.arn
+# }
+
+
+# resource "aws_lambda_function_url" "get-obituaries"{
+#     function_name       = aws_lambda_function.get-obituaries-30120286.function_name
+#     authorization_type = "NONE"
+
+# cors {
+#     allow_credentials = true
+#     allow_origins = ["*"]
+#     allow_methods = ["GET"]
+#     allow_headers = ["*"]
+#     expose_headers = ["keep-alive", "date"]
+#     max_age = 86400  # Cache preflight request results for 24 hours (86400 seconds)
+# }
+
+# }
+# output "get-obituaries_lambda_url" {
+#     value = aws_lambda_function_url.get-obituaries.function_url
+# }
 
 
 

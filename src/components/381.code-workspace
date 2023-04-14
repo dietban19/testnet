@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../380/Assignment5/Assignment4/src"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../../aws/assignment-07-lotion-plus-dieter-and-arsalan"
+		},
+		{
+			"path": "../../../test"
+		}
+	],
+	"settings": {
+		"java.project.sourcePaths": [
+			""
+		]
+	}
+}

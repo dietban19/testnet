@@ -23,37 +23,37 @@ function Layout() {
   const [obituaries, setObituaries] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [publicId, setPublicId] = useState('');
-
+  const [imageUrl, setImageUrl] = useState(null);
 
   const [fetchedObituaries, setFetchedObituaries] = useState([]);
 
-  useEffect(() => {
-    console.log("LOADING")
-    const fetchObituaries = async () => {
-      try {
-        const response = await fetch("https://v3ltd3siykb4juuquihx222m7q0gusne.lambda-url.ca-central-1.on.aws/", {
-          method: "GET",
-          headers: {
-            // "Content-Type": "multipart/form-data",
-            // "authorization": user.access_token, // Uncomment this if you need to pass an access token
-          },
-        });
+  // useEffect(() => {
+  //   console.log("LOADING")
+  //   const fetchObituaries = async () => {
+  //     try {
+  //       const response = await fetch("https://v3ltd3siykb4juuquihx222m7q0gusne.lambda-url.ca-central-1.on.aws/", {
+  //         method: "GET",
+  //         headers: {
+  //           // "Content-Type": "multipart/form-data",
+  //           // "authorization": user.access_token, // Uncomment this if you need to pass an access token
+  //         },
+  //       });
 
-        if (response.status === 200) {
-          console.log("SUCCESS!!")
-          const obituaries = await response.json();
-          setFetchedObituaries(obituaries);
-        } else {
-          // Handle non-200 status codes as needed
-          console.error(`Error fetching obituaries: ${response.status}`);
-        }
-      } catch (error) {
-        console.error("Error fetching obituaries:", error);
-      }
-    };
+  //       if (response.status === 200) {
+  //         console.log("SUCCESS!!")
+  //         const obituaries = await response.json();
+  //         setFetchedObituaries(obituaries);
+  //       } else {
+  //         // Handle non-200 status codes as needed
+  //         console.error(`Error fetching obituaries: ${response.status}`);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching obituaries:", error);
+  //     }
+  //   };
 
-    fetchObituaries();
-  }, [obituaries]); // Add any dependencies as needed
+  //   fetchObituaries();
+  // }, [obituaries]); // Add any dependencies as needed
 
   useEffect(() => {
     if (obituaries.length <= 0) {
@@ -108,54 +108,64 @@ const handleFileChange = (event) => {
 
 const handleInputChange = (setStateFunction, event) => {
   setStateFunction(event.target.value);
-}; const handleWriteObituary = async () => {
-  if (birthDate && deathDate) {
-    // Apply the pixelation effect to the image URL
+}; 
+
+const handleWriteObituary = async () => {
+    if (birthDate && deathDate) {
+      const formData = new FormData();
+      formData.append("id", uuidv4());
+      formData.append("name", name);
+      formData.append("image", selectedFile);
+      formData.append("birthDate", birthDate);
+      formData.append("deathDate", deathDate);
+      formData.append("description", "this is the description");
 
 
-    const newObituary = {
-      id: uuidv4(),
-      name: name,
-      image: selectedFile, // Use the transformed image URL
-      birthDate: birthDate,
-      deathDate: deathDate,
-      description: "this is the description",
-    };
-
-   
-    const formData = new FormData();
-    formData.append("id", newObituary.id);
-    formData.append("name", newObituary.name);
-    formData.append("image", selectedFile, selectedFileName);
-    formData.append("birthDate", newObituary.birthDate);
-    formData.append("deathDate", newObituary.deathDate);
-    formData.append("description", newObituary.description);
-    for (const [key, value] of formData) {
-      console.log(`${key}: ${value}`);
-    }
-    // Call the create-obituary Lambda function
+    //the code creates a set of key/value pairs that can be sent as part of an HTTP request. 
+    console.log(selectedFile)
     try {
-      const response = await axios.post("https://6sha33sy25nhvqvtf72caxg3vm0vjebu.lambda-url.ca-central-1.on.aws/", formData,{
-        headers: {
-          "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
-        },
-      });
-      console.log(response);
+      // sends an HTTP POST request to the URL 
+      //passing in the formData object as the request body.
+      const response = await axios.post(
+        "https://tzduudnsqngo3jwtcb47kzsuva0xuuml.lambda-url.ca-central-1.on.aws/",
+        formData
+        //
+        , //By passing in the formData object as the request body, the code is 
+              //sending a set of key/value pairs representing form data to the specified URL.
+        {
+          //object containing headers for the request.
+          headers: {
+            "content-type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("THE RESPONSE: ",response);
+      setImageUrl(response.data.image_url);
+      console.log(response['data'])
+
 
       if (response.status === 200) {
+        const newObituary = {
+        id: uuidv4(),
+        name: name,
+        image: imageUrl, // Use the transformed image URL
+        birthDate: birthDate,
+        deathDate: deathDate,
+        description: "this is the description",
+      };
         setObituaries([...obituaries, newObituary]);
-
-        // Reset the form data
-        setSelectedFile(null);
-        setBirthDate(null);
-        setDeathDate(null);
-
-        // Close the popup
+        setSelectedFile("");
+        setSelectedFileName("");
+        setBirthDate("");
+        setDeathDate("");
+        setName("");
         closePopup();
-        console.log()
+        
+        console.log("ReACHES HERE")
       } else {
         alert("Error occurred while creating obituary.");
       }
+      
     } catch (error) {
       console.error("Error calling the create-obituary Lambda function:", error);
       alert("Error occurred while creating obituary.");
@@ -164,6 +174,7 @@ const handleInputChange = (setStateFunction, event) => {
     alert("Please enter both birth and death date/time");
   }
 };
+
 
 
   
