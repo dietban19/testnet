@@ -182,7 +182,8 @@ resource "aws_iam_role_policy" "create-obituary-ssm" {
         Resource = [
           "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_cloud_name",
           "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_api_key",
-          "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_api_secret"
+          "arn:aws:ssm:ca-central-1:906484542670:parameter/cloudinary_api_secret",
+          "arn:aws:ssm:ca-central-1:906484542670:parameter/gpt_api_key"
         ]
       }
     ]
@@ -192,74 +193,75 @@ resource "aws_iam_role_policy" "create-obituary-ssm" {
 
 
 
+
 //---------------------------------------------------------------------------------------------------------//
 
 
-# resource "aws_iam_role" "get-obituaries_lambda" {
-#   name               = "iam-for-lambda-get-obituary"
-#   assume_role_policy = <<EOF
-# {
-#   "Version": "2012-10-17",
-#   "Statement": [
-#     {
-#       "Action": "sts:AssumeRole",
-#       "Principal": {
-#         "Service": "lambda.amazonaws.com"
-#       },
-#       "Effect": "Allow",
-#       "Sid": ""
-#     }
-#   ]
-# }
+resource "aws_iam_role" "get-obituaries_lambda" {
+  name               = "iam-for-lambda-get-obituary"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
 
-# EOF
-# }
-
-
-# data "archive_file" "lambda_get-obituaries"{
-#     type = "zip"
-#     # this file (main.py) needs to exist in the same folder as this 
-#   # Terraform configuration file
-#     source_file = "../functions/get-obituaries/main.py"
-#     output_path = "get-obituaries-artifact.zip"
-#  }
+EOF
+}
 
 
-
-# resource "aws_lambda_function" "get-obituaries-30120286" {
-#   role = aws_iam_role.get-obituaries_lambda.arn
-#   function_name = "get-obituaries"
-#   handler          = local.handler_name
-#   filename         = "get-obituaries-artifact.zip"
-#   source_code_hash = data.archive_file.lambda_get-obituaries.output_base64sha256
-
-#   # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
-#   runtime = "python3.9"
-# }
-
-# resource "aws_iam_role_policy_attachment" "get-obituaries-lambda_logs" {
-#   role       = aws_iam_role.get-obituaries_lambda.name
-#   policy_arn = aws_iam_policy.logs.arn
-# }
+data "archive_file" "lambda_get-obituaries"{
+    type = "zip"
+    # this file (main.py) needs to exist in the same folder as this 
+  # Terraform configuration file
+    source_file = "../functions/get-obituaries/main.py"
+    output_path = "get-obituaries-artifact.zip"
+ }
 
 
-# resource "aws_lambda_function_url" "get-obituaries"{
-#     function_name       = aws_lambda_function.get-obituaries-30120286.function_name
-#     authorization_type = "NONE"
 
-# cors {
-#     allow_credentials = true
-#     allow_origins = ["*"]
-#     allow_methods = ["GET"]
-#     allow_headers = ["*"]
-#     expose_headers = ["keep-alive", "date"]
-#     max_age = 86400  # Cache preflight request results for 24 hours (86400 seconds)
-# }
+resource "aws_lambda_function" "get-obituaries-30120286" {
+  role = aws_iam_role.get-obituaries_lambda.arn
+  function_name = "get-obituaries"
+  handler          = local.handler_name
+  filename         = "get-obituaries-artifact.zip"
+  source_code_hash = data.archive_file.lambda_get-obituaries.output_base64sha256
 
-# }
-# output "get-obituaries_lambda_url" {
-#     value = aws_lambda_function_url.get-obituaries.function_url
-# }
+  # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
+  runtime = "python3.9"
+}
+
+resource "aws_iam_role_policy_attachment" "get-obituaries-lambda_logs" {
+  role       = aws_iam_role.get-obituaries_lambda.name
+  policy_arn = aws_iam_policy.logs.arn
+}
+
+
+resource "aws_lambda_function_url" "get-obituaries"{
+    function_name       = aws_lambda_function.get-obituaries-30120286.function_name
+    authorization_type = "NONE"
+
+cors {
+    allow_credentials = true
+    allow_origins = ["*"]
+    allow_methods = ["GET"]
+    allow_headers = ["*"]
+    expose_headers = ["keep-alive", "date"]
+    max_age = 86400  # Cache preflight request results for 24 hours (86400 seconds)
+}
+
+}
+output "get-obituaries_lambda_url" {
+    value = aws_lambda_function_url.get-obituaries.function_url
+}
 
 
 

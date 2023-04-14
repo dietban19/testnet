@@ -23,37 +23,58 @@ function Layout() {
   const [obituaries, setObituaries] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [publicId, setPublicId] = useState('');
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState("");
 
   const [fetchedObituaries, setFetchedObituaries] = useState([]);
 
-  // useEffect(() => {
-  //   console.log("LOADING")
-  //   const fetchObituaries = async () => {
-  //     try {
-  //       const response = await fetch("https://v3ltd3siykb4juuquihx222m7q0gusne.lambda-url.ca-central-1.on.aws/", {
-  //         method: "GET",
-  //         headers: {
-  //           // "Content-Type": "multipart/form-data",
-  //           // "authorization": user.access_token, // Uncomment this if you need to pass an access token
-  //         },
-  //       });
+  useEffect(() => {
+    console.log("LOADING")
+    const fetchObituaries = async () => {
+      try {
+        const response = await fetch("https://oluenjzsd7mpt6f2mp2qoam7xe0rjhkh.lambda-url.ca-central-1.on.aws/", {
+          method: "GET",
+          headers: {
+            // "Content-Type": "multipart/form-data",
+            // "authorization": user.access_token, // Uncomment this if you need to pass an access token
+          },
+        });
 
-  //       if (response.status === 200) {
-  //         console.log("SUCCESS!!")
-  //         const obituaries = await response.json();
-  //         setFetchedObituaries(obituaries);
-  //       } else {
-  //         // Handle non-200 status codes as needed
-  //         console.error(`Error fetching obituaries: ${response.status}`);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching obituaries:", error);
-  //     }
-  //   };
+        if (response.status === 200) {
+          console.log("SUCCESS!!")
+          const obituaries = await response.json();
+          setFetchedObituaries(obituaries);
+        } else {
+          // Handle non-200 status codes as needed
+          console.error(`Error fetching obituaries: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Error fetching obituaries:", error);
+      }
+    };
 
-  //   fetchObituaries();
-  // }, [obituaries]); // Add any dependencies as needed
+    fetchObituaries();
+  }, []); // Add any dependencies as needed
+
+  useEffect(() => {
+    if (imageUrl) {
+      const newObituary = {
+        id: uuidv4(),
+        name: name,
+        image: imageUrl, // Use the transformed image URL
+        birthDate: birthDate,
+        deathDate: deathDate,
+        description: "this is the description",
+      };
+      console.log(newObituary);
+      setObituaries([...obituaries, newObituary]);
+      setSelectedFile("");
+      setSelectedFileName("");
+      setBirthDate("");
+      setDeathDate("");
+      setName("");
+      closePopup();
+    }
+  }, [imageUrl, obituaries, name, birthDate, deathDate]);
 
   useEffect(() => {
     if (obituaries.length <= 0) {
@@ -75,6 +96,7 @@ function Layout() {
     setSelectedFile(null);
     setBirthDate(null);
     setDeathDate(null);
+    setImageUrl("");
 
     setIsPopupOpen(false);
   };
@@ -110,6 +132,7 @@ const handleInputChange = (setStateFunction, event) => {
   setStateFunction(event.target.value);
 }; 
 
+
 const handleWriteObituary = async () => {
     if (birthDate && deathDate) {
       const formData = new FormData();
@@ -139,29 +162,12 @@ const handleWriteObituary = async () => {
           },
         }
       );
+      
       console.log("THE RESPONSE: ",response);
       setImageUrl(response.data.image_url);
-      console.log(response['data'])
-
-
-      if (response.status === 200) {
-        const newObituary = {
-        id: uuidv4(),
-        name: name,
-        image: imageUrl, // Use the transformed image URL
-        birthDate: birthDate,
-        deathDate: deathDate,
-        description: "this is the description",
-      };
-        setObituaries([...obituaries, newObituary]);
-        setSelectedFile("");
-        setSelectedFileName("");
-        setBirthDate("");
-        setDeathDate("");
-        setName("");
-        closePopup();
-        
-        console.log("ReACHES HERE")
+ 
+      if (response.status === 200) {  
+        console.log("ayy")
       } else {
         alert("Error occurred while creating obituary.");
       }

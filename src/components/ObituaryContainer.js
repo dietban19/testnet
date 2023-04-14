@@ -11,8 +11,9 @@ function ObituaryContainer({ obituary, index }) {
     event.stopPropagation();
     console.log('Button clicked');
   };
-
+  console.log("THE OBI: ",obituary)
   return (
+
     <div
       className="obi-item"
       key={`obi-item-${index}`}
