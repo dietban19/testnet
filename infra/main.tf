@@ -122,6 +122,7 @@ resource "aws_lambda_function" "create-obituary-30120286" {
   handler          = local.handler_name
   filename         = "../functions/create-obituary/deployment-package/deployment-package.zip"
   source_code_hash = filebase64sha256("../functions/create-obituary/deployment-package/deployment-package.zip")
+  timeout          = 30
 
   # see all available runtimes here: https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime
   runtime = "python3.9"
@@ -191,6 +192,29 @@ resource "aws_iam_role_policy" "create-obituary-ssm" {
   role        = aws_iam_role.create-obituary_lambda.name
 }
 
+resource "aws_iam_policy" "polly" {
+  name        = "lambda-polly"
+  description = "IAM policy for using Amazon Polly from a Lambda function"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "polly:SynthesizeSpeech"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+resource "aws_iam_role_policy_attachment" "create-obituary-lambda_polly" {
+  role       = aws_iam_role.create-obituary_lambda.name
+  policy_arn = aws_iam_policy.polly.arn
+}
 
 
 

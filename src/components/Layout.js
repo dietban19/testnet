@@ -9,6 +9,7 @@ import openai from 'openai';
 function Layout() {
   const navigate = useNavigate();
   const mainContainerRef = useRef(null);
+  const audioRef = useRef(null);
 
 
     // selectedFile is the image that was choosen by the user
@@ -24,9 +25,11 @@ function Layout() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [publicId, setPublicId] = useState('');
   const [imageUrl, setImageUrl] = useState("");
+  const [audioUrl, setAudioUrl] = useState("");
 
+  const [gptDescription, setGptDescription] = useState("");
   const [fetchedObituaries, setFetchedObituaries] = useState([]);
-
+  const su = audioUrl;
   useEffect(() => {
     console.log("LOADING")
     const fetchObituaries = async () => {
@@ -56,14 +59,15 @@ function Layout() {
   }, []); // Add any dependencies as needed
 
   useEffect(() => {
-    if (imageUrl) {
+    if (imageUrl && gptDescription && audioUrl) {
       const newObituary = {
         id: uuidv4(),
         name: name,
         image: imageUrl, // Use the transformed image URL
         birthDate: birthDate,
         deathDate: deathDate,
-        description: "this is the description",
+        description: gptDescription,
+        audio: audioUrl
       };
       console.log(newObituary);
       setObituaries([...obituaries, newObituary]);
@@ -97,6 +101,8 @@ function Layout() {
     setBirthDate(null);
     setDeathDate(null);
     setImageUrl("");
+    setGptDescription("");
+    setAudioUrl('')
 
     setIsPopupOpen(false);
   };
@@ -132,7 +138,11 @@ const handleInputChange = (setStateFunction, event) => {
   setStateFunction(event.target.value);
 }; 
 
-
+const playAudio = () => {
+  if (audioRef.current) {
+    audioRef.current.play();
+  }
+};
 const handleWriteObituary = async () => {
     if (birthDate && deathDate) {
       const formData = new FormData();
@@ -141,7 +151,7 @@ const handleWriteObituary = async () => {
       formData.append("image", selectedFile);
       formData.append("birthDate", birthDate);
       formData.append("deathDate", deathDate);
-      formData.append("description", "this is the description");
+
 
 
     //the code creates a set of key/value pairs that can be sent as part of an HTTP request. 
@@ -165,7 +175,9 @@ const handleWriteObituary = async () => {
       
       console.log("THE RESPONSE: ",response);
       setImageUrl(response.data.image_url);
- 
+      setGptDescription(response.data.gpt_response)
+      setAudioUrl(response.data.audio_file)
+
       if (response.status === 200) {  
         console.log("ayy")
       } else {
@@ -195,7 +207,6 @@ const handleWriteObituary = async () => {
           </button> */}
           &nbsp;
         </aside>
-
         <div id="top-header">
             <Link to="/notes">The Last Show</Link>
         </div>
@@ -224,7 +235,7 @@ const handleWriteObituary = async () => {
                   <h2>Image Here</h2>
                   <hr></hr>
                 </div>
-               
+
                <input
                   type="file"
                   id="file"
@@ -233,6 +244,7 @@ const handleWriteObituary = async () => {
                 ></input>
                 <label htmlFor="file" id="choose-image">
                 ↪Select an Image for the Deceased
+
                 </label>
                 <span>{selectedFile && `Selected file: ${selectedFileName}`}</span>
                 <div className = "popup-contents-main">
