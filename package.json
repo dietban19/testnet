@@ -21,7 +21,7 @@
   "scripts": {
     "dev": "node Layout.js",
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
