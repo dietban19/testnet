@@ -207,6 +207,7 @@ const handleWriteObituary = async () => {
           </button> */}
           &nbsp;
         </aside>
+
         <div id="top-header">
             <Link to="/notes">The Last Show</Link>
         </div>
@@ -222,31 +223,30 @@ const handleWriteObituary = async () => {
    
       {isPopupOpen && (
         <>
-         <div className="popup">
-            <div id = "popup-header">
-              <button className = "popup-button" onClick={closePopup}>&#10006;</button>
-            </div>
-            <div className = "popup-contents-container">
-              <div id = "popup-contents">
-                <div id = "popup-contents-header">
-              
-                  <h1>Create a New Obituary</h1>
-                 
-                  <h2>Image Here</h2>
-                  <hr></hr>
-                </div>
-
-               <input
-                  type="file"
-                  id="file"
-                  accept="image/*"
-                  onChange={(event)=>{handleFileChange(event)}}
-                ></input>
-                <label htmlFor="file" id="choose-image">
-                ↪Select an Image for the Deceased
-
-                </label>
-                <span>{selectedFile && `Selected file: ${selectedFileName}`}</span>
+        <div className = "popup">
+          <div id = "popup-top"> 
+              <button id = "popup-button" onClick={closePopup}><span className = "icon">&lt;</span> Back</button>
+          </div>
+          <div className = "popup-container">
+              <div className = "popup-header">
+                <h1>Create a New Obituary</h1>
+                 <br></br>
+              </div>
+              <div className = "popup-info">
+                   <div className = "image-input">
+                      <input
+                        type="file"
+                        id="file"
+                        accept="image/*"
+                        onChange={(event)=>{handleFileChange(event)}}
+                      ></input>
+                      <label htmlFor="file" id="choose-image">
+                      <div id = "select-image">
+                        <i className="gg-add"></i>Select an Image for the Deceased
+                      </div> 
+                      </label>
+                      <span>{selectedFile && `Selected file: ${selectedFileName}`}</span>
+                    </div>
                 <div className = "popup-contents-main">
                 <input
                     id="input-name"
@@ -255,7 +255,6 @@ const handleWriteObituary = async () => {
                     onChange={(event) => handleNameChange(event)}
                   />
                   <div id = "date-container">
-                    
                   <h3>Born:{" "}
                   <input type="datetime-local"
                           value={birthDate}
@@ -272,18 +271,21 @@ const handleWriteObituary = async () => {
                   </div>
                   
                 </div>
-                <button
-                  onClick={handleWriteObituary}
-                  disabled={!birthDate || !deathDate || !selectedFile||!name}
-                  className={!birthDate || !deathDate ||!name || !selectedFile ? "button-disabled" : "button-enabled"}>
-                   Write Obituary</button>
-
               </div>
-            </div>
+              <div className = "popup-bottom">
+                <div id = "popup-button">
+                  <button
+                      onClick={handleWriteObituary}
+                      disabled={!birthDate || !deathDate || !selectedFile||!name}
+                      className={!birthDate || !deathDate ||!name || !selectedFile ? "button-disabled" : "button-enabled"}>
+                      Write Obituary
+                  </button>
+                </div>
+              </div>
+          </div>
         </div>
-
-   
         <div className="blur-background"></div>;
+        
         </>
       )}
            <div className = "main-container">

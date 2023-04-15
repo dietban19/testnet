@@ -1,3 +1,4 @@
+
 body,
 h1,
 h2,
@@ -17,7 +18,7 @@ a {
   text-decoration: none;
 }
 body {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #333;
 
 }
@@ -33,7 +34,7 @@ body {
 
 .button-enabled {
   color: white;
-  background-color: #0276c4;;
+  background-color: #0a84ff;
   cursor: pointer;
   border: none;
   outline: none;
@@ -142,7 +143,6 @@ button {
   z-index: 9998;
   background-color: rgba(255, 253, 253, 0.922);
 }
-
 .popup {
   position: fixed;
   top:0; 
@@ -152,6 +152,127 @@ button {
   background-color: transparent;
   z-index: 9999;
 }
+.gg-add {
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid;
+  transform: scale(var(--ggs,1));
+  border-radius: 22px
+}
+.gg-add::after,
+.gg-add::before {
+  content: "";
+  display: block;
+  box-sizing: border-box;
+  position: absolute;
+  width: 10px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 5px;
+  top: 8px;
+  left: 4px
+}
+.gg-add::after {
+  width: 2px;
+  height: 10px;
+  top: 4px;
+  left: 8px
+}
+#select-image{
+  display: flex;
+  gap: 20px;
+  color: #616060;
+}
+
+
+
+
+@media screen and (min-width:441px){
+  #popup-top{
+    display: flex;
+    margin:80px;
+  }
+  #popup-top button{
+    font-size: 24px;
+    margin: 0 20px;
+    padding: 10px 20px;
+    background-color: #008eed;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #popup-top button:hover{
+    background-color: #0276c4;
+    color: #fff;
+  } */
+  #popup-top{
+    display: flex;
+    justify-content: flex-end;
+    margin:80px;
+  }
+.popup-container{
+
+  /* outline: 2px solid red; */
+  padding: 20px;
+  z-index: 10000;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  border-radius: 10px;
+}
+.popup-header{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 15px;
+  /* outline: 2px solid blue; */
+}
+.popup-info{
+  padding: 15px;
+  /* outline: 2px solid green; */
+}
+.popup-info .image-input{
+  /* outline: 3px solid pink; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} 
+.popup-bottom{
+  /* outline: 2px solid orange; */
+}
+.popup-bottom #popup-button{
+  /* outline: 4px solid red; */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+}
+
+#popup-button button{
+  height: 80px;
+  width: 100%;
+}
+#date-container{
+  /* outline: 4px solid green; */
+  padding: 10px;
+}
+#input-name{
+  outline: 1px solid #adadad;
+  background-color: white;
+  height: 80px;
+  font-size: 35px;
+  width: 800px;
+  margin: 10px;
+}
+}
+/* 
 
 
 #popup-header{
@@ -165,8 +286,6 @@ button {
   left: 50%;
   transform: translate(-50%,-50%);
   border-radius: 10px;
-  z-index: 10000;
-
 }
 
 #popup-contents{
@@ -199,7 +318,7 @@ button {
 .popup-button:hover{
   background-color: #c3c3c3;
   color: #fff;
-}
+} */
 
 /* #choose-file{
   display:none;
@@ -219,14 +338,7 @@ button {
   visibility: hidden; 
   position: absolute;
 }
-#input-name{
-  outline: 1px solid #adadad;
-  background-color: white;
-  height: 80px;
-  font-size: 35px;
-  width: 800px;
-  margin: 10px;
-}
+
 
 .main-container{
 
@@ -308,9 +420,101 @@ button {
 }
 
 .description-container{
+
 }
 
+@media screen and (max-width: 440px) {
+@import url('https://unpkg.com/css.gg@2.0.0/icons/css/add.css');
 
-@media screen and (max-width: 390px) {
 
+
+  button{
+    background-color: transparent;
+    border: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0a82ff;
+    /* text-decoration: underline; */
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+  }
+  #date-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 40px;
+  }
+
+  #date-container h3 {
+  
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  #popup-top{
+    display: flex;
+    margin-right: 5px;
+    margin: 5px;
+
+  }
+  #date-container input[type="datetime-local"] {
+  
+    margin: 20px;
+    width: 90%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    font-size: 1rem;
+  }
+
+
+
+  .popup-container{
+
+    position: fixed;
+    top: calc(50% + 60px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 95vw;
+    height: 99%;
+  }
+
+  
+  #popup-button button{
+    height: 80px;
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #popup-button button:hover {
+    background-color: #0071ff;
+  }
+  #date-container{
+
+    padding: 10px;
+  }
+  #input-name{
+    border: none;
+    outline: none;
+    margin-top: calc(30px);
+    border-bottom: 1px solid #ccc;
+    background-color: white;
+
+    font-size: 35px;
+    
+  }
+  
 }
